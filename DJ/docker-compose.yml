@@ -1,0 +1,53 @@
+version: '3.9'
+
+services:
+
+  db:
+    image: postgres:latest
+    container_name: postgres_db
+    restart: on-failure
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: "django_user"
+      POSTGRES_PASSWORD: "django_password"
+      POSTGRES_DB: "django_db"
+      TZ: "Europe/Moscow"
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "django_user", "-d", "django_db"]
+      interval: 2s
+      timeout: 1s
+      retries: 5
+      start_period: 1s
+
+
+  web:
+    build: dj
+    container_name: django
+    restart: on-failure
+#    command: sh -c "python manage.py migrate && python manage.py createsuperuser --noinput && gunicorn dj.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - ./dj/:/usr/src/app/
+      - ./dj/static/:/usr/src/app/static/
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    ports:
+      - 80:80
+    depends_on:
+      - web
+    volumes:
+      - ./dj/static/:/usr/src/app/static/
+
+volumes:
+  postgres:
+  static_volume:
