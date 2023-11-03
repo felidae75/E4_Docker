@@ -28,9 +28,13 @@ services:
     container_name: django
     restart: on-failure
 #    command: sh -c "python manage.py migrate && python manage.py createsuperuser --noinput && gunicorn dj.wsgi:application --bind 0.0.0.0:8000"
+#    command: >
+#      sh -c "python manage.py migrate &&
+#             python manage.py createsuperuser --noinput &&
+#             gunicorn DeployProject.wsgi:application -b 0.0.0.0:8000"
     volumes:
       - ./dj/:/usr/src/app/
-      - ./dj/static/:/usr/src/app/static/
+      - ./dj/static/:/usr/src/app/staticfiles/
     ports:
       - "8000:8000"
     env_file:
@@ -46,7 +50,7 @@ services:
     depends_on:
       - web
     volumes:
-      - ./dj/static/:/usr/src/app/static/
+      - ./dj/static/:/usr/src/app/staticfiles/
 
 volumes:
   postgres:
